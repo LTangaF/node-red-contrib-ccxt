@@ -14,60 +14,58 @@ module.exports = function(RED) {
     // configure image static folder
     app.use('/', serveStatic(path.join(__dirname, "images")));
 
+    // bind apiMethods
+    if (RED.settings.httpNodeRoot !== false) {
+        var errorHandler = function(err, req, res, next) {
+            res.send(500);
+        };
+
+        var callbackExchanges = function(req, res) {
+            // get exchange collection                
+            var exchanges = ccxt.exchanges;
+
+            // get all exchanges
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ exchange: exchanges }));
+        }
+
+        var callbackApiTypes = function(req, res) {
+            var exchange = req.query.exchange;
+
+            // create to exchange object
+            var exchange = new ccxt[exchange] ();
+
+            // get all api types by exchange
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ type: Object.keys(exchange.api) }));
+        } 
+
+        var callbackApis = function(req, res) {
+            var exchange = req.query.exchange;
+            var type = req.query.apitype;
+
+            // create to exchange object
+            var exchange = new ccxt[exchange] ();
+
+            // get all apis from exchange and api type
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ api: exchange.api[type] }));
+        } 
+
+        var corsHandler = function(req, res, next) { 
+            next(); 
+        }               
+    }
+
+    app.get('/exchanges', corsHandler, callbackExchanges, errorHandler);
+    app.get('/apitypes', corsHandler, callbackApiTypes, errorHandler);
+    app.get('/apis', corsHandler, callbackApis, errorHandler);
+
     // node implementation
     function CcxtApi(config) {
         RED.nodes.createNode(this, config);
 
         var node = this;
-
-        // bind apiMethods
-        if (RED.settings.httpNodeRoot !== false) {
-            node.errorHandler = function(err, req, res, next) {
-                node.warn(err);
-
-                res.send(500);
-            };
-
-            node.callbackExchanges = function(req, res) {
-                // get exchange collection                
-                var exchanges = ccxt.exchanges;
-
-                // get all exchanges
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ exchange: exchanges }));
-            }
-
-            node.callbackApiTypes = function(req, res) {
-                var exchange = req.query.exchange;
-
-                // create to exchange object
-                var exchange = new ccxt[exchange] ();
-
-                // get all api types by exchange
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ type: Object.keys(exchange.api) }));
-            } 
-
-            node.callbackApis = function(req, res) {
-                var exchange = req.query.exchange;
-                var type = req.query.apitype;
-
-                // create to exchange object
-                var exchange = new ccxt[exchange] ();
-
-                // get all apis from exchange and api type
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ api: exchange.api[type] }));
-            } 
-
-            node.corsHandler = function(req, res, next) { 
-                next(); 
-            }               
-        }
-
-        app.get('/exchanges', node.corsHandler, node.callbackExchanges, node.errorHandler);
-        app.get('/apitypes', node.corsHandler, node.callbackApiTypes, node.errorHandler);
-        app.get('/apis', node.corsHandler, node.callbackApis, node.errorHandler);        
 
         // execute ccxt API
         node.on('input', function (msg) {
