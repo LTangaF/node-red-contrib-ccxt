@@ -1498,7 +1498,7 @@
 
 <script type="text/javascript">
     RED.nodes.registerType("ccxt-api", {
-        category:'Traiding',
+        category:'Trading',
         defaults: {
             name: {value: ''},
             exchange: {value: 'bittrex', required:true},
@@ -1512,9 +1512,9 @@
             fetchohlcvlimit: {value: undefined},
             fetchtradessymbol: {value: ''},
             apisecrets: {type: 'ccxt-exchange', required: false},
-            apitype : {value: '', required: true},
-            apicustom : {value: '', required: true},
-            apipayload: {value:'', required: false, validate: RED.validators.typedInput('payloadType')},
+            apitype: {value: '', required: false},
+            apicustom: {value: '', required: false},
+            apipayload: {value:'', required: false},
             payloadType: {value: 'json'}
         },
         outputs: 1,
