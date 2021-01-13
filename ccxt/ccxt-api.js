@@ -90,7 +90,9 @@ module.exports = function(RED) {
                         );
                     }
                     else
-                        exchange = new ccxt[config.exchange] ();                    
+                        exchange = new ccxt[config.exchange] ();
+                    
+                    exchange.setSandboxMode(config.sandbox);
 
                     // execute api
                     var result;
@@ -125,7 +127,7 @@ module.exports = function(RED) {
                         result = await exchange.fetchTrades(fetchtradessymbol);
                     } else if (api === "customAPI") {
                         var apipayload = msg.apipayload ? msg.apipayload : JSON.parse(config.apipayload);
-                        result = await exchange[config.apitype + '_' + config.apicustom.toLowerCase().replace('/','_')](apipayload);
+                        result = await exchange[config.apitype + '_' + config.apicustom.toLowerCase().replace(/[\/-]/g,'_')](apipayload);
                     } else {
                         node.status({fill:"yellow", shape: "ring", text: "CCXT API not exist"});
                         node.warn("CCXT API not exist");
@@ -161,6 +163,6 @@ module.exports = function(RED) {
         credentials: {
             apikey: {type: "text"},
             secret: {type: "text"}
-        } 
+        }
     });
 }
