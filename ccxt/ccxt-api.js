@@ -124,10 +124,11 @@ module.exports = function(RED) {
                     } else if (api === "fetchTrades") {
                         result = await exchange.fetchTrades(fetchtradessymbol);
                     } else if (api === "customAPI") {
-                        result = await exchange[config.apitype + '_' + config.apicustom.toLowerCase()](JSON.parse(config.apipayload));
+                        var apipayload = msg.apipayload ? msg.apipayload : JSON.parse(config.apipayload);
+                        result = await exchange[config.apitype + '_' + config.apicustom.toLowerCase().replace('/','_')](apipayload);
                     } else {
                         node.status({fill:"yellow", shape: "ring", text: "CCXT API not exist"});
-                        node.warning("CCXT API not exist");
+                        node.warn("CCXT API not exist");
                     }
 
                     // clear any node error
